@@ -511,6 +511,7 @@ class Decoder(BaseLayer):
         cross_attention_logit_biases: Optional[Tensor] = None,
         cached_states: Optional[NestedTensor] = None,
         page_pool: Optional[Nested[Tensor]] = None,
+        return_aux: Optional[set[str]] = None,
     ) -> tuple[Optional[NestedTensor], Tensor]:
         validate_contains_paths(input_batch, paths=["input_ids"])
         input_segment_ids = input_batch.get("input_segment_ids", None)
@@ -528,6 +529,7 @@ class Decoder(BaseLayer):
                 target_positions=positions,
                 cross_attention_data=cross_attention_data,
                 cross_attention_logit_biases=cross_attention_logit_biases,
+                return_aux=return_aux,
             )
             cached_states = None
         elif mode == ForwardMode.INIT_STATES:

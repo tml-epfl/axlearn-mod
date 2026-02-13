@@ -545,7 +545,7 @@ class Model(BaseModel):
         _, results = self._metrics(input_batch=input_batch, predict_outputs=predictions)
         return {k: v for k, v in results.items() if k in ("per_token_loss", "live_targets")}
 
-    def predict(self, input_batch: dict[str, Tensor]) -> dict[str, Tensor]:
+    def predict(self, input_batch: dict[str, Tensor], **kwargs) -> dict[str, Tensor]:
         """Produce decoder logits and hidden states.
 
         Args:
@@ -558,6 +558,7 @@ class Model(BaseModel):
                     Denotes the segments within the sequence.
                 input_positions: an optional int Tensor of shape [batch_size, seq_len].
                     Values should be in the range [0, seq_len].
+            **kwargs: Additional arguments passed to the decoder (e.g., return_aux).
 
         Returns:
             A dict containing:
@@ -570,7 +571,7 @@ class Model(BaseModel):
         # Decoder hidden states: [batch_size, target_len, hidden_dim].
         decoder_batch = {**input_batch}
         decoder_batch["positions"] = input_batch.get("input_positions")
-        return self.decoder(input_batch=decoder_batch)
+        return self.decoder(input_batch=decoder_batch, **kwargs)
 
     def _metrics(
         self, input_batch: Nested[Tensor], *, predict_outputs: Nested[Tensor]

@@ -565,7 +565,7 @@ async def _async_deserialize(
 
     # pylint: disable-next=protected-access
     return await serialization.ts_impl._create_async_array_from_callback(
-        shape, dtype, in_sharding, cb
+        shape, in_sharding, cb
     )
 
 

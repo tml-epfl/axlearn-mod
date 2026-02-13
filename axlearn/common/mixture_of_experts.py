@@ -23,7 +23,10 @@ from typing import Any, Callable, NamedTuple, Optional, Sequence, Tuple, Union
 import jax
 import jax.numpy as jnp
 import numpy as np
-import tokamax
+try:
+    import tokamax
+except ImportError:
+    tokamax = None
 from absl import logging
 from jax import lax
 from jax.experimental.pjit import pjit

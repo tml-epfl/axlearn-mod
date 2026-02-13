@@ -2082,6 +2082,27 @@ class MultiheadAttention(BaseLayer):
             kv_state=kv_state,
             attention_logit_biases=attention_logit_biases,
         )
+        # Attention weight distribution metrics.
+        # probs shape: [batch, num_heads, target_length, source_length]
+        if probs is not None:
+            # Proportion of total weight on the largest attention weight.
+            max_attention_weight = jnp.max(probs, axis=-1)
+            first_token_attention_weight = probs[..., 0]
+            total_attention_weight = jnp.sum(probs, axis=-1)
+            proportion_of_total_weight = max_attention_weight / (total_attention_weight + 1e-9)
+            first_token_proportion_of_total_weight = first_token_attention_weight / (total_attention_weight + 1e-9)
+            # Proportion of weights below threshold T1=0.001.
+            proportion_below_threshold = jnp.mean(probs < 0.001, axis=-1)
+            # Proportion of weights above threshold T2=0.1.
+            proportion_above_threshold = jnp.mean(probs > 0.1, axis=-1)
+            self.add_module_output("max_attention_weight", max_attention_weight)
+            self.add_module_output("proportion_below_threshold", proportion_below_threshold)
+            self.add_module_output("proportion_above_threshold", proportion_above_threshold)
+            self.add_module_output("proportion_of_total_weight", proportion_of_total_weight)
+            self.add_module_output("total_attention_weight", total_attention_weight)
+            self.add_module_output("first_token_proportion_of_total_weight", first_token_proportion_of_total_weight)
+            self.add_module_output("first_token_attention_weight", first_token_attention_weight)
+
         if not cfg.scale_kv_before_cache_update:
             # This is to maintain the existing behavior of sending pre-scaled K to the next layer.
             kv_state = kv_state._replace(k_proj=k_proj)
@@ -3646,6 +3667,8 @@ class TransformerLayer(BaseTransformerLayer):
         # TODO(markblee): Support module outputs in decoding.
         if mode == ForwardMode.FORWARD:
             self.add_module_output("output", data)
+            if return_aux and "self_attention_probs" in return_aux and self_atten_outputs.probs is not None:
+                self.add_module_output("self_attention_probs", self_atten_outputs.probs)
         return dict(self_attention=self_atten_state), BaseTransformerLayer.Output(
             data=data,
             self_attention_probs=self_atten_outputs.probs,

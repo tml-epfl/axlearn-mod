@@ -97,11 +97,9 @@ class Repeat(BaseLayer):
         # Repeat layers specified in `layer` this many times.
         num_layers: Required[int] = REQUIRED
         # A callable that drops outputs from the layer's output_collection based on path. By
-        # default, we drop all module outputs. See `scan_in_context` for details.
+        # default, we drop nothing. See `scan_in_context` for details.
         # TODO(markblee): Converge on dropping no outputs by default.
-        drop_output: InstantiableConfig[Callable[[str], bool]] = config_for_function(
-            _drop_by_regex
-        ).set(rules=["module_outputs.*"])
+        drop_output: Optional[InstantiableConfig[Callable[[str], bool]]] = None
         # An optional positive integer or boolean argument for `jax.lax.scan`.
         # If a positive integer is provided, it determines how many unrolled loop iterations to run
         # within a single rolled iteration of the loop. If a boolean is provided, it will determine
